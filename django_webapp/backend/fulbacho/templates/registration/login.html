@@ -1,0 +1,16 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Login — Fulbacho{% endblock %}
+{% block content %}
+  <section class="auth-card">
+    <h1>Iniciar sesión</h1>
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {% include "fulbacho/partials/form_errors.html" with form=form %}
+      <label>{{ form.username.label }} {{ form.username }}</label>
+      <label>{{ form.password.label }} {{ form.password }}</label>
+      <button class="button" type="submit">Entrar</button>
+    </form>
+    <p class="muted">¿No tenés cuenta? <a href="{% url 'register' %}">Registrate</a>.</p>
+    <p class="muted">También podés <a href="{% url 'guest-code' %}">ver un grupo como invitado</a>.</p>
+  </section>
+{% endblock %}

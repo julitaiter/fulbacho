@@ -1,0 +1,50 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Jugadores — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Plantel</p>
+      <h1>Jugadores</h1>
+    </div>
+    {% if not guest_mode %}
+      <a class="button" href="{% url 'player-create' group.id %}">Nuevo jugador</a>
+    {% endif %}
+  </div>
+
+  <section class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Partidos</th>
+            <th>Goles</th>
+            <th>En contra</th>
+            <th>% victorias</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stats in player_stats %}
+            <tr>
+              <td>{{ stats.name }}</td>
+              <td>{{ stats.matches_played }}</td>
+              <td>{{ stats.goals_for }}</td>
+              <td>{{ stats.own_goals }}</td>
+              <td>{{ stats.win_rate }}%</td>
+              <td>
+                {% if guest_mode %}
+                  <a href="{% url 'guest-player-detail' group.code stats.player_id %}">Ver</a>
+                {% else %}
+                  <a href="{% url 'player-detail' group.id stats.player_id %}">Ver</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6">Todavía no hay jugadores.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

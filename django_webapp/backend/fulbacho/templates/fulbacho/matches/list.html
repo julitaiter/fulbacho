@@ -1,0 +1,37 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Partidos — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Historial</p>
+      <h1>Partidos</h1>
+    </div>
+    {% if not guest_mode %}
+      <a class="button" href="{% url 'match-create' group.id %}">Nuevo partido</a>
+    {% endif %}
+  </div>
+
+  <div class="match-list">
+    {% for match in matches %}
+      <article class="match-card">
+        <div>
+          <p class="muted">{{ match.played_at|date:"d/m/Y H:i" }}{% if match.location %} · {{ match.location }}{% endif %}</p>
+          <h2>{{ match.team_a_name }} <strong>{{ match.score_a }} - {{ match.score_b }}</strong> {{ match.team_b_name }}</h2>
+          <p class="muted">{{ match.get_modality_display }} · {{ match.match_players.count }} jugadores · {{ match.goals.count }} goles cargados</p>
+        </div>
+        {% if guest_mode %}
+          <a class="button ghost" href="{% url 'guest-match-detail' group.code match.id %}">Ver</a>
+        {% else %}
+          <a class="button ghost" href="{% url 'match-detail' group.id match.id %}">Ver</a>
+        {% endif %}
+      </article>
+    {% empty %}
+      <div class="empty-state">
+        <h2>No hay partidos cargados</h2>
+        {% if not guest_mode %}
+          <p>Cuando jueguen el próximo fulbito, cargalo desde “Nuevo partido”.</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Mis grupos — Fulbacho{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Tus equipos de amigos</p>
+      <h1>Mis grupos</h1>
+    </div>
+    <div class="actions">
+      <a class="button" href="{% url 'group-create' %}">Crear grupo</a>
+      <a class="button secondary" href="{% url 'group-join' %}">Unirme con código</a>
+    </div>
+  </div>
+
+  {% if groups %}
+    <div class="cards-grid">
+      {% for group in groups %}
+        <article class="card">
+          <h2><a href="{% url 'group-dashboard' group.id %}">{{ group.name }}</a></h2>
+          <p class="code">Código: <strong>{{ group.code }}</strong></p>
+          <div class="card-stats">
+            <span>{{ group.players_count }} jugadores</span>
+            <span>{{ group.matches_count }} partidos</span>
+          </div>
+          <a class="button ghost full" href="{% url 'group-dashboard' group.id %}">Abrir grupo</a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>Todavía no tenés grupos</h2>
+      <p>Creá uno nuevo o pedile el código a tus amigos para unirte.</p>
+    </div>
+  {% endif %}
+{% endblock %}

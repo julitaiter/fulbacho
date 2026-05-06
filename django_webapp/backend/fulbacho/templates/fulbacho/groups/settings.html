@@ -1,0 +1,52 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Ajustes — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Ajustes del grupo</p>
+      <h1>{{ group.name }}</h1>
+    </div>
+    <div class="code-box">Código: <strong>{{ group.code }}</strong></div>
+  </div>
+
+  <div class="two-columns">
+    <section class="panel">
+      <h2>Datos del grupo</h2>
+      {% if is_admin %}
+        <form method="post" class="stacked-form">
+          {% csrf_token %}
+          {% include "fulbacho/partials/form_errors.html" with form=form %}
+          {% for field in form %}
+            <label>
+              {{ field.label }}
+              {{ field }}
+              {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+            </label>
+          {% endfor %}
+          <button class="button" type="submit">Actualizar</button>
+        </form>
+      {% else %}
+        <p>Nombre: <strong>{{ group.name }}</strong></p>
+        <p class="muted">Solo un admin puede renombrar el grupo.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Miembros</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Usuario</th><th>Rol</th><th>Desde</th></tr></thead>
+          <tbody>
+            {% for member in members %}
+              <tr>
+                <td>{{ member.user }}</td>
+                <td>{{ member.get_role_display }}</td>
+                <td>{{ member.joined_at|date:"d/m/Y" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}{{ title }} — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Partidos</p>
+      <h1>{{ title }}</h1>
+    </div>
+  </div>
+
+  {% if players_count < 4 %}
+    <div class="message warning">
+      Necesitás al menos 4 jugadores activos para cargar un partido, porque el mínimo es 2 por equipo.
+    </div>
+  {% endif %}
+
+  <form method="post" class="match-form">
+    {% csrf_token %}
+
+    <section class="panel">
+      <h2>1. Datos del partido</h2>
+      {% include "fulbacho/partials/form_errors.html" with form=match_form %}
+      <div class="form-grid">
+        {% for field in match_form %}
+          <label>
+            {{ field.label }}
+            {{ field }}
+            {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Equipos</h2>
+      {% include "fulbacho/partials/form_errors.html" with form=roster_form %}
+      <div class="two-columns rosters">
+        <div>
+          <h3>Equipo A</h3>
+          {{ roster_form.team_a_players }}
+          {% for error in roster_form.team_a_players.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </div>
+        <div>
+          <h3>Equipo B</h3>
+          {{ roster_form.team_b_players }}
+          {% for error in roster_form.team_b_players.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3. Goles opcionales</h2>
+      <p class="muted">
+        Cargá los goles que quieras asignar a jugadores. Podés dejar filas vacías.
+        Los goles cargados no pueden superar el marcador.
+      </p>
+
+      {{ goal_formset.management_form }}
+      {% if goal_formset.non_form_errors %}
+        <div class="form-errors">{{ goal_formset.non_form_errors }}</div>
+      {% endif %}
+
+      <div class="goal-rows">
+        {% for goal_form in goal_formset.forms %}
+          <div class="goal-row">
+            {% if goal_form.non_field_errors %}
+              <div class="form-errors">{{ goal_form.non_field_errors }}</div>
+            {% endif %}
+            <label>{{ goal_form.team_scored_for.label }} {{ goal_form.team_scored_for }}</label>
+            <label>{{ goal_form.player.label }} {{ goal_form.player }}</label>
+            <label class="checkbox-inline">{{ goal_form.own_goal }} {{ goal_form.own_goal.label }}</label>
+            {% if goal_form.DELETE %}
+              <label class="checkbox-inline">{{ goal_form.DELETE }} Borrar</label>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="button" type="submit">Guardar partido</button>
+      <a class="button ghost" href="{% url 'matches-list' group.id %}">Cancelar</a>
+    </div>
+  </form>
+{% endblock %}

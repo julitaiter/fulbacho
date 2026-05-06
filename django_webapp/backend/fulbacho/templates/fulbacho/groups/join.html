@@ -1,0 +1,18 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Unirse a grupo — Fulbacho{% endblock %}
+{% block content %}
+  <section class="auth-card">
+    <h1>Unirme a un grupo</h1>
+    <p class="muted">Pedile el código de 6 caracteres al admin del grupo.</p>
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {% include "fulbacho/partials/form_errors.html" with form=form %}
+      <label>
+        {{ form.code.label }}
+        {{ form.code }}
+        {% for error in form.code.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+      </label>
+      <button class="button" type="submit">Unirme</button>
+    </form>
+  </section>
+{% endblock %}

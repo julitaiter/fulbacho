@@ -1,0 +1,60 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Partido — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">{{ match.played_at|date:"d/m/Y H:i" }}{% if match.location %} · {{ match.location }}{% endif %}</p>
+      <h1>{{ match.team_a_name }} {{ match.score_a }} - {{ match.score_b }} {{ match.team_b_name }}</h1>
+    </div>
+    {% if not guest_mode and match.can_be_edited %}
+      <a class="button" href="{% url 'match-edit' group.id match.id %}">Editar</a>
+    {% endif %}
+  </div>
+
+  <div class="two-columns">
+    <section class="panel">
+      <h2>{{ match.team_a_name }}</h2>
+      <ul class="plain-list">
+        {% for entry in match.match_players.all %}
+          {% if entry.team == "A" %}
+            <li>{{ entry.player.name }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>{{ match.team_b_name }}</h2>
+      <ul class="plain-list">
+        {% for entry in match.match_players.all %}
+          {% if entry.team == "B" %}
+            <li>{{ entry.player.name }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Goles cargados</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Jugador</th><th>Suma para</th><th>Tipo</th></tr></thead>
+        <tbody>
+          {% for goal in match.goals.all %}
+            <tr>
+              <td>{% if goal.player %}{{ goal.player.name }}{% else %}Sin asignar{% endif %}</td>
+              <td>{{ goal.get_team_scored_for_display }}</td>
+              <td>{% if goal.own_goal %}En contra{% else %}Normal{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3">No se asignaron goles a jugadores.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if match.goals.count < match.total_score_goals %}
+      <p class="muted">Hay goles del marcador que no fueron asignados a jugadores.</p>
+    {% endif %}
+  </section>
+{% endblock %}

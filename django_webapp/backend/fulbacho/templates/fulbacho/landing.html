@@ -1,0 +1,28 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Fulbacho — fútbol entre amigos{% endblock %}
+{% block content %}
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Fútbol 5/6 entre amigos</p>
+      <h1>Estadísticas para el fulbito semanal, sin app mobile y sin API.</h1>
+      <p class="hero-copy">
+        Armá grupos, cargá jugadores, registrá partidos y dejá que el dashboard diga quién gana,
+        quién la mete y quién se manda el gol en contra.
+      </p>
+      <div class="actions">
+        <a class="button" href="{% url 'register' %}">Crear cuenta</a>
+        <a class="button secondary" href="{% url 'login' %}">Iniciar sesión</a>
+        <a class="button ghost" href="{% url 'guest-code' %}">Ver como invitado</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <h2>Webapp Django</h2>
+      <ul class="check-list">
+        <li>Templates HTML</li>
+        <li>Formularios con CSRF</li>
+        <li>Sesiones Django</li>
+        <li>Sin endpoints REST</li>
+      </ul>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Registro — Fulbacho{% endblock %}
+{% block content %}
+  <section class="auth-card">
+    <h1>Crear cuenta</h1>
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {% include "fulbacho/partials/form_errors.html" with form=form %}
+      {% for field in form %}
+        <label>
+          {{ field.label }}
+          {{ field }}
+          {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+          {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </label>
+      {% endfor %}
+      <button class="button" type="submit">Registrarme</button>
+    </form>
+  </section>
+{% endblock %}

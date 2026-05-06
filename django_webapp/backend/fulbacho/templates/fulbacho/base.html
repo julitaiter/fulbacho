@@ -1,0 +1,70 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Fulbacho{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'fulbacho/css/app.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{% if user.is_authenticated %}{% url 'groups-index' %}{% else %}{% url 'landing' %}{% endif %}">
+      <span class="ball">⚽</span>
+      <span>Fulbacho</span>
+    </a>
+
+    <nav class="top-nav">
+      {% if guest_mode %}
+        <span class="guest-pill">Modo invitado</span>
+        <a href="{% url 'guest-code' %}">Cambiar código</a>
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+        <a class="button button-small" href="{% url 'register' %}">Registrarse</a>
+      {% elif user.is_authenticated %}
+        <a href="{% url 'groups-index' %}">Mis grupos</a>
+        <form class="logout-form" action="{% url 'logout' %}" method="post">
+          {% csrf_token %}
+          <button type="submit">Salir</button>
+        </form>
+      {% else %}
+        <a href="{% url 'guest-code' %}">Entrar como invitado</a>
+        <a href="{% url 'login' %}">Login</a>
+        <a class="button button-small" href="{% url 'register' %}">Registro</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {% if group %}
+    <nav class="group-nav">
+      {% if guest_mode %}
+        <a class="{% if active_tab == 'dashboard' %}active{% endif %}" href="{% url 'guest-dashboard' group.code %}">Dashboard</a>
+        <a class="{% if active_tab == 'matches' %}active{% endif %}" href="{% url 'guest-matches' group.code %}">Partidos</a>
+        <a class="{% if active_tab == 'players' %}active{% endif %}" href="{% url 'guest-players' group.code %}">Jugadores</a>
+      {% else %}
+        <a class="{% if active_tab == 'dashboard' %}active{% endif %}" href="{% url 'group-dashboard' group.id %}">Dashboard</a>
+        <a class="{% if active_tab == 'matches' %}active{% endif %}" href="{% url 'matches-list' group.id %}">Partidos</a>
+        <a class="{% if active_tab == 'players' %}active{% endif %}" href="{% url 'players-list' group.id %}">Jugadores</a>
+        <a class="{% if active_tab == 'settings' %}active{% endif %}" href="{% url 'group-settings' group.id %}">Ajustes</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+
+  {% if guest_mode %}
+    <div class="guest-banner">
+      Estás viendo este grupo como invitado. Podés consultar estadísticas, partidos y jugadores, pero no editar nada.
+    </div>
+  {% endif %}
+
+  <main class="container">
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

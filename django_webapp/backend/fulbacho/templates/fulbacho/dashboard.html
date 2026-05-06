@@ -1,0 +1,134 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Dashboard — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Dashboard</p>
+      <h1>{{ group.name }}</h1>
+    </div>
+    <div class="code-box">Código: <strong>{{ group.code }}</strong></div>
+  </div>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <span>Total de partidos</span>
+      <strong>{{ dashboard.global.total_matches }}</strong>
+    </article>
+    <article class="stat-card">
+      <span>Goles totales</span>
+      <strong>{{ dashboard.global.total_goals }}</strong>
+    </article>
+    <article class="stat-card">
+      <span>Promedio de goles</span>
+      <strong>{{ dashboard.global.goals_per_match }}</strong>
+    </article>
+    <article class="stat-card">
+      <span>Goles en contra</span>
+      <strong>{{ dashboard.global.own_goals }}</strong>
+    </article>
+  </section>
+
+  <div class="two-columns">
+    <section class="panel">
+      <h2>Último partido</h2>
+      {% if dashboard.global.last_match %}
+        <p class="score-line">
+          {{ dashboard.global.last_match.team_a_name }}
+          <strong>{{ dashboard.global.last_match.score_a }} - {{ dashboard.global.last_match.score_b }}</strong>
+          {{ dashboard.global.last_match.team_b_name }}
+        </p>
+        <p class="muted">{{ dashboard.global.last_match.played_at|date:"d/m/Y H:i" }}</p>
+      {% else %}
+        <p class="muted">Todavía no hay partidos.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Partido más goleado</h2>
+      {% if dashboard.global.most_scored_match %}
+        <p class="score-line">
+          {{ dashboard.global.most_scored_match.team_a_name }}
+          <strong>{{ dashboard.global.most_scored_match.score_a }} - {{ dashboard.global.most_scored_match.score_b }}</strong>
+          {{ dashboard.global.most_scored_match.team_b_name }}
+        </p>
+        <p class="muted">{{ dashboard.global.most_scored_match.total_goals }} goles</p>
+      {% else %}
+        <p class="muted">Todavía no hay datos.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Rankings y destacados</h2>
+    <div class="cards-grid compact">
+      <article class="mini-card">
+        <span>Goleador histórico</span>
+        <strong>{% if dashboard.rankings.top_scorer %}{{ dashboard.rankings.top_scorer.name }}{% else %}-{% endif %}</strong>
+        <small>{% if dashboard.rankings.top_scorer %}{{ dashboard.rankings.top_scorer.goals_for }} goles{% endif %}</small>
+      </article>
+      <article class="mini-card danger">
+        <span>Rey del gol en contra</span>
+        <strong>{% if dashboard.rankings.own_goal_king %}{{ dashboard.rankings.own_goal_king.name }}{% else %}-{% endif %}</strong>
+        <small>{% if dashboard.rankings.own_goal_king %}{{ dashboard.rankings.own_goal_king.own_goals }} en contra{% endif %}</small>
+      </article>
+      <article class="mini-card">
+        <span>Más participativo</span>
+        <strong>{% if dashboard.rankings.most_participative %}{{ dashboard.rankings.most_participative.name }}{% else %}-{% endif %}</strong>
+        <small>{% if dashboard.rankings.most_participative %}{{ dashboard.rankings.most_participative.matches_played }} partidos{% endif %}</small>
+      </article>
+      <article class="mini-card">
+        <span>Mejor % victorias</span>
+        <strong>{% if dashboard.rankings.best_win_rate_min_5 %}{{ dashboard.rankings.best_win_rate_min_5.name }}{% else %}-{% endif %}</strong>
+        <small>{% if dashboard.rankings.best_win_rate_min_5 %}{{ dashboard.rankings.best_win_rate_min_5.win_rate }}%{% else %}mínimo 5 partidos{% endif %}</small>
+      </article>
+      <article class="mini-card">
+        <span>Racha activa</span>
+        <strong>{% if dashboard.rankings.active_streak_leader %}{{ dashboard.rankings.active_streak_leader.name }}{% else %}-{% endif %}</strong>
+        <small>{% if dashboard.rankings.active_streak_leader %}{{ dashboard.rankings.active_streak_leader.current_win_streak }} victorias{% endif %}</small>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Estadísticas por jugador</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>PJ</th>
+            <th>G</th>
+            <th>E</th>
+            <th>P</th>
+            <th>% victorias</th>
+            <th>GF</th>
+            <th>EC</th>
+            <th>Netos</th>
+            <th>Racha</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for player in dashboard.players %}
+            <tr>
+              <td>{{ player.name }}</td>
+              <td>{{ player.matches_played }}</td>
+              <td>{{ player.wins }}</td>
+              <td>{{ player.draws }}</td>
+              <td>{{ player.losses }}</td>
+              <td>
+                <div class="bar"><span style="width: {{ player.win_rate }}%"></span></div>
+                {{ player.win_rate }}%
+              </td>
+              <td>{{ player.goals_for }}</td>
+              <td>{{ player.own_goals }}</td>
+              <td>{{ player.net_goals }}</td>
+              <td>{{ player.current_win_streak }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="10">Todavía no hay jugadores.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

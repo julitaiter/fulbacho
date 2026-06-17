@@ -32,48 +32,53 @@
     </section>
 
     <section class="panel">
-      <h2>2. Equipos</h2>
+      <h2>2. Equipos y goles</h2>
       {% include "fulbacho/partials/form_errors.html" with form=roster_form %}
       <div class="two-columns rosters">
         <div>
           <h3>Equipo A</h3>
-          {{ roster_form.team_a_players }}
+          <div class="roster-goal-list">
+            {% for row in roster_rows %}
+              <div class="roster-goal-row">
+                <label class="player-check">
+                  <input class="roster-player-toggle" type="checkbox" name="team_a_players" value="{{ row.player.id }}"{% if row.checked_a %} checked{% endif %}>
+                  <span>{{ row.player.name }}</span>
+                </label>
+                <label>
+                  <span>A favor</span>
+                  <input class="goal-counter" type="number" name="{{ row.a_goals_for_name }}" min="0" step="1" value="{{ row.a_goals_for_value }}"{% if not row.checked_a %} disabled{% endif %}>
+                </label>
+                <label>
+                  <span>En contra</span>
+                  <input class="goal-counter" type="number" name="{{ row.a_own_goals_name }}" min="0" step="1" value="{{ row.a_own_goals_value }}"{% if not row.checked_a %} disabled{% endif %}>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
           {% for error in roster_form.team_a_players.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
         </div>
         <div>
           <h3>Equipo B</h3>
-          {{ roster_form.team_b_players }}
+          <div class="roster-goal-list">
+            {% for row in roster_rows %}
+              <div class="roster-goal-row">
+                <label class="player-check">
+                  <input class="roster-player-toggle" type="checkbox" name="team_b_players" value="{{ row.player.id }}"{% if row.checked_b %} checked{% endif %}>
+                  <span>{{ row.player.name }}</span>
+                </label>
+                <label>
+                  <span>A favor</span>
+                  <input class="goal-counter" type="number" name="{{ row.b_goals_for_name }}" min="0" step="1" value="{{ row.b_goals_for_value }}"{% if not row.checked_b %} disabled{% endif %}>
+                </label>
+                <label>
+                  <span>En contra</span>
+                  <input class="goal-counter" type="number" name="{{ row.b_own_goals_name }}" min="0" step="1" value="{{ row.b_own_goals_value }}"{% if not row.checked_b %} disabled{% endif %}>
+                </label>
+              </div>
+            {% endfor %}
+          </div>
           {% for error in roster_form.team_b_players.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
         </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2>3. Goles opcionales</h2>
-      <p class="muted">
-        Cargá los goles que quieras asignar a jugadores. Podés dejar filas vacías.
-        Los goles cargados no pueden superar el marcador.
-      </p>
-
-      {{ goal_formset.management_form }}
-      {% if goal_formset.non_form_errors %}
-        <div class="form-errors">{{ goal_formset.non_form_errors }}</div>
-      {% endif %}
-
-      <div class="goal-rows">
-        {% for goal_form in goal_formset.forms %}
-          <div class="goal-row">
-            {% if goal_form.non_field_errors %}
-              <div class="form-errors">{{ goal_form.non_field_errors }}</div>
-            {% endif %}
-            <label>{{ goal_form.team_scored_for.label }} {{ goal_form.team_scored_for }}</label>
-            <label>{{ goal_form.player.label }} {{ goal_form.player }}</label>
-            <label class="checkbox-inline">{{ goal_form.own_goal }} {{ goal_form.own_goal.label }}</label>
-            {% if goal_form.DELETE %}
-              <label class="checkbox-inline">{{ goal_form.DELETE }} Borrar</label>
-            {% endif %}
-          </div>
-        {% endfor %}
       </div>
     </section>
 
@@ -82,4 +87,23 @@
       <a class="button ghost" href="{% url 'matches-list' group.id %}">Cancelar</a>
     </div>
   </form>
+
+  <script>
+    (() => {
+      const syncCounters = (checkbox) => {
+        const row = checkbox.closest(".roster-goal-row");
+        row.querySelectorAll(".goal-counter").forEach((input) => {
+          input.disabled = !checkbox.checked;
+          if (!checkbox.checked) {
+            input.value = "0";
+          }
+        });
+      };
+
+      document.querySelectorAll(".roster-player-toggle").forEach((checkbox) => {
+        syncCounters(checkbox);
+        checkbox.addEventListener("change", () => syncCounters(checkbox));
+      });
+    })();
+  </script>
 {% endblock %}

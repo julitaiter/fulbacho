@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.forms import formset_factory
 from django.utils import timezone
 
-from .models import FriendGroup, Match, MatchModality, Player, Team
+from .models import FriendGroup, Match, Player, Team
 
 
 class EmailOrUsernameAuthenticationForm(AuthenticationForm):

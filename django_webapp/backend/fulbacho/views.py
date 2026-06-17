@@ -16,7 +16,6 @@ from .forms import (
     MatchRosterForm,
     PlayerForm,
     RegisterForm,
-    build_goal_formset,
 )
 from .models import FriendGroup, Goal, GroupMember, Match, Player, Team
 from .services import (
@@ -40,17 +39,6 @@ def _validation_error_text(exc: ValidationError) -> str:
     return "; ".join(parts)
 
 
-def _goal_initial(match: Match) -> list[dict]:
-    return [
-        {
-            "team_scored_for": goal.team_scored_for,
-            "player": goal.player_id,
-            "own_goal": goal.own_goal,
-        }
-        for goal in match.goals.order_by("created_at")
-    ]
-
-
 def _roster_initial(match: Match) -> dict:
     team_a = []
     team_b = []
@@ -62,26 +50,112 @@ def _roster_initial(match: Match) -> dict:
     return {"team_a_players": team_a, "team_b_players": team_b}
 
 
-def _goals_from_formset(goal_formset) -> list[dict]:
-    goals = []
-    for goal_form in goal_formset:
-        cleaned = goal_form.cleaned_data
-        if not cleaned:
+def _goal_counts_initial(match: Match | None) -> dict[str, dict[str, int]]:
+    counts: dict[str, dict[str, int]] = {}
+    if not match:
+        return counts
+
+    for goal in match.goals.select_related("player").order_by("created_at"):
+        if not goal.player_id:
             continue
-        if cleaned.get("DELETE"):
-            continue
-        team = cleaned.get("team_scored_for")
-        player = cleaned.get("player")
-        own_goal = cleaned.get("own_goal", False)
-        if not team and not player and not own_goal:
-            continue
-        goals.append(
+        player_key = str(goal.player_id)
+        counts.setdefault(player_key, {"for": 0, "against": 0})
+        if goal.own_goal:
+            counts[player_key]["against"] += 1
+        else:
+            counts[player_key]["for"] += 1
+    return counts
+
+
+def _goal_counter_value(request, field_name: str, initial_count: int) -> str:
+    if request.method == "POST":
+        return request.POST.get(field_name, "0")
+    return str(initial_count)
+
+
+def _roster_rows(players, request, match: Match | None) -> list[dict]:
+    initial_roster = _roster_initial(match) if match else {"team_a_players": [], "team_b_players": []}
+    initial_counts = _goal_counts_initial(match)
+
+    if request.method == "POST":
+        selected_a = set(request.POST.getlist("team_a_players"))
+        selected_b = set(request.POST.getlist("team_b_players"))
+    else:
+        selected_a = {str(player_id) for player_id in initial_roster["team_a_players"]}
+        selected_b = {str(player_id) for player_id in initial_roster["team_b_players"]}
+
+    rows = []
+    for player in players:
+        player_key = str(player.id)
+        counts = initial_counts.get(player_key, {"for": 0, "against": 0})
+        rows.append(
             {
-                "team_scored_for": team,
                 "player": player,
-                "own_goal": own_goal,
+                "checked_a": player_key in selected_a,
+                "checked_b": player_key in selected_b,
+                "a_goals_for_name": f"goals_for_{Team.A}_{player.id}",
+                "a_own_goals_name": f"own_goals_{Team.A}_{player.id}",
+                "b_goals_for_name": f"goals_for_{Team.B}_{player.id}",
+                "b_own_goals_name": f"own_goals_{Team.B}_{player.id}",
+                "a_goals_for_value": _goal_counter_value(
+                    request,
+                    f"goals_for_{Team.A}_{player.id}",
+                    counts["for"] if player_key in selected_a else 0,
+                ),
+                "a_own_goals_value": _goal_counter_value(
+                    request,
+                    f"own_goals_{Team.A}_{player.id}",
+                    counts["against"] if player_key in selected_a else 0,
+                ),
+                "b_goals_for_value": _goal_counter_value(
+                    request,
+                    f"goals_for_{Team.B}_{player.id}",
+                    counts["for"] if player_key in selected_b else 0,
+                ),
+                "b_own_goals_value": _goal_counter_value(
+                    request,
+                    f"own_goals_{Team.B}_{player.id}",
+                    counts["against"] if player_key in selected_b else 0,
+                ),
             }
         )
+    return rows
+
+
+def _parse_goal_counter(request, field_name: str, label: str) -> int:
+    raw_value = (request.POST.get(field_name) or "0").strip()
+    if raw_value == "":
+        return 0
+    try:
+        value = int(raw_value)
+    except ValueError as exc:
+        raise ValidationError(f"{label} debe ser un nÃºmero entero.") from exc
+    if value < 0:
+        raise ValidationError(f"{label} no puede ser negativo.")
+    return value
+
+
+def _goals_from_counter_inputs(request, roster_form: MatchRosterForm) -> list[dict]:
+    goals = []
+    team_configs = [
+        (Team.A, Team.B, roster_form.cleaned_data["team_a_players"]),
+        (Team.B, Team.A, roster_form.cleaned_data["team_b_players"]),
+    ]
+
+    for team, opponent, players in team_configs:
+        for player in players:
+            goals_for = _parse_goal_counter(
+                request,
+                f"goals_for_{team}_{player.id}",
+                f"Goles a favor de {player.name}",
+            )
+            own_goals = _parse_goal_counter(
+                request,
+                f"own_goals_{team}_{player.id}",
+                f"Goles en contra de {player.name}",
+            )
+            goals.extend({"team_scored_for": team, "player": player, "own_goal": False} for _ in range(goals_for))
+            goals.extend({"team_scored_for": opponent, "player": player, "own_goal": True} for _ in range(own_goals))
     return goals
 
 
@@ -321,20 +395,24 @@ def _match_editor(request, group: FriendGroup, match: Match | None = None):
         player_queryset=active_players,
         initial=_roster_initial(match) if match else None,
     )
-    goal_formset = build_goal_formset(
-        data=request.POST or None,
-        player_queryset=active_players,
-        initial=_goal_initial(match) if match else None,
-    )
 
     if request.method == "POST":
-        if match_form.is_valid() and roster_form.is_valid() and goal_formset.is_valid():
+        if match_form.is_valid() and roster_form.is_valid():
+            try:
+                goals = _goals_from_counter_inputs(request, roster_form)
+            except ValidationError as exc:
+                match_form.add_error(None, _validation_error_text(exc))
+                goals = None
+        else:
+            goals = None
+
+        if goals is not None:
             data = {
                 **match_form.cleaned_data,
                 "group": group,
                 "team_a_players": [player.id for player in roster_form.cleaned_data["team_a_players"]],
                 "team_b_players": [player.id for player in roster_form.cleaned_data["team_b_players"]],
-                "goals": _goals_from_formset(goal_formset),
+                "goals": goals,
             }
             try:
                 if match:
@@ -356,7 +434,7 @@ def _match_editor(request, group: FriendGroup, match: Match | None = None):
             "match": match,
             "match_form": match_form,
             "roster_form": roster_form,
-            "goal_formset": goal_formset,
+            "roster_rows": _roster_rows(active_players, request, match),
             "players_count": active_players.count(),
             "title": "Editar partido" if match else "Nuevo partido",
             "active_tab": "matches",

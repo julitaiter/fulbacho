@@ -344,7 +344,7 @@ th {
   gap: 1rem;
 }
 
-.stacked-form label, .form-grid label, .goal-row label {
+.stacked-form label, .form-grid label, .goal-row label, .roster-goal-row label {
   display: grid;
   gap: .35rem;
   font-weight: 700;
@@ -423,6 +423,45 @@ input[type="checkbox"] {
   border-radius: .6rem;
 }
 
+.roster-goal-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.roster-goal-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(80px, .45fr) minmax(90px, .5fr);
+  gap: .6rem;
+  align-items: end;
+  padding: .65rem;
+  background: #f8fbf9;
+  border: 1px solid var(--border);
+  border-radius: .6rem;
+}
+
+.roster-goal-row input[type="number"] {
+  min-width: 0;
+  padding: .55rem;
+}
+
+.roster-goal-row input[type="number"]:disabled {
+  background: #edf3ef;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.player-check {
+  display: flex !important;
+  align-items: center;
+  gap: .45rem;
+  min-width: 0;
+  padding-bottom: .55rem;
+}
+
+.player-check span {
+  overflow-wrap: anywhere;
+}
+
 .goal-rows {
   display: grid;
   gap: .75rem;
@@ -490,6 +529,15 @@ input[type="checkbox"] {
 
   .goal-row {
     grid-template-columns: 1fr;
+  }
+
+  .roster-goal-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .player-check {
+    grid-column: 1 / -1;
+    padding-bottom: 0;
   }
 
   .checkbox-inline {

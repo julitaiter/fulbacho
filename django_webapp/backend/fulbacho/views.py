@@ -1,14 +1,22 @@
+import csv
+import io
+
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from .access import get_group_for_user, groups_for_user, is_group_admin
 from .forms import (
+    CsvImportForm,
     GuestCodeForm,
     GroupForm,
     JoinGroupForm,
@@ -17,7 +25,7 @@ from .forms import (
     PlayerForm,
     RegisterForm,
 )
-from .models import FriendGroup, Goal, GroupMember, Match, Player, Team
+from .models import FriendGroup, Goal, GroupMember, Match, MatchModality, Player, Team
 from .services import (
     build_group_dashboard,
     build_player_stats,
@@ -37,6 +45,97 @@ def _validation_error_text(exc: ValidationError) -> str:
     for field, errors in message_dict.items():
         parts.append(f"{field}: {', '.join(errors)}")
     return "; ".join(parts)
+
+
+def _csv_response(filename: str, fieldnames: list[str], rows: list[dict]) -> HttpResponse:
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response.write("\ufeff")
+    writer = csv.DictWriter(response, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    return response
+
+
+def _read_csv_upload(uploaded_file) -> list[dict]:
+    try:
+        content = uploaded_file.read().decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValidationError("El CSV debe estar codificado en UTF-8.") from exc
+    reader = csv.DictReader(io.StringIO(content))
+    if not reader.fieldnames:
+        raise ValidationError("El CSV no tiene encabezados.")
+    return list(reader)
+
+
+def _require_csv_columns(rows: list[dict], required_columns: set[str]) -> None:
+    if not rows:
+        return
+    missing = required_columns.difference(rows[0].keys())
+    if missing:
+        raise ValidationError(f"Faltan columnas en el CSV: {', '.join(sorted(missing))}.")
+
+
+def _split_csv_list(value: str) -> list[str]:
+    return [item.strip() for item in (value or "").split("|") if item.strip()]
+
+
+def _bool_from_csv(value: str) -> bool:
+    return (value or "").strip().lower() in {"1", "true", "si", "sí", "yes", "y"}
+
+
+def _int_from_csv(value: str, field_name: str, row_number: int) -> int:
+    try:
+        parsed = int((value or "0").strip())
+    except ValueError as exc:
+        raise ValidationError(f"Fila {row_number}: {field_name} debe ser un nÃºmero entero.") from exc
+    if parsed < 0:
+        raise ValidationError(f"Fila {row_number}: {field_name} no puede ser negativo.")
+    return parsed
+
+
+def _player_for_csv_name(group: FriendGroup, name: str) -> Player:
+    clean_name = (name or "").strip()
+    if not clean_name:
+        raise ValidationError("El nombre del jugador no puede estar vacío.")
+    player = Player.objects.filter(group=group, name__iexact=clean_name).first()
+    if player:
+        if not player.active:
+            player.active = True
+            player.save(update_fields=["active", "updated_at"])
+        return player
+    return Player.objects.create(group=group, name=clean_name)
+
+
+def _goal_counts_for_export(match: Match, *, own_goal: bool) -> str:
+    counts = {}
+    for goal in match.goals.all():
+        if goal.own_goal != own_goal or not goal.player:
+            continue
+        counts[goal.player.name] = counts.get(goal.player.name, 0) + 1
+    return " | ".join(f"{name}:{count}" for name, count in sorted(counts.items()))
+
+
+def _parse_goal_specs(value: str, players_by_name: dict[str, Player], row_number: int) -> list[tuple[Player, int]]:
+    specs = []
+    for item in _split_csv_list(value):
+        if ":" not in item:
+            raise ValidationError(f"Fila {row_number}: el gol '{item}' debe tener formato Jugador:cantidad.")
+        player_name, count_text = item.rsplit(":", 1)
+        player_key = player_name.strip().lower()
+        if player_key not in players_by_name:
+            raise ValidationError(f"Fila {row_number}: {player_name.strip()} no forma parte del partido.")
+        specs.append((players_by_name[player_key], _int_from_csv(count_text, f"goles de {player_name.strip()}", row_number)))
+    return specs
+
+
+def _played_at_from_csv(value: str, row_number: int):
+    parsed = parse_datetime((value or "").strip())
+    if not parsed:
+        raise ValidationError(f"Fila {row_number}: played_at debe ser una fecha ISO válida.")
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+    return parsed
 
 
 def _roster_initial(match: Match) -> dict:
@@ -313,6 +412,63 @@ def players_list(request, group_id):
 
 
 @login_required
+def players_export_csv(request, group_id):
+    group = get_group_for_user(request.user, group_id)
+    rows = [
+        {
+            "name": player.name,
+            "active": "1" if player.active else "0",
+        }
+        for player in group.players.order_by("name")
+    ]
+    return _csv_response(f"fulbacho-{group.code}-jugadores.csv", ["name", "active"], rows)
+
+
+@login_required
+def players_import_csv(request, group_id):
+    group = get_group_for_user(request.user, group_id)
+    form = CsvImportForm(request.POST or None, request.FILES or None)
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            rows = _read_csv_upload(form.cleaned_data["file"])
+            _require_csv_columns(rows, {"name"})
+            imported = 0
+            with transaction.atomic():
+                for row_number, row in enumerate(rows, start=2):
+                    name = (row.get("name") or "").strip()
+                    if not name:
+                        raise ValidationError(f"Fila {row_number}: name es obligatorio.")
+                    player = Player.objects.filter(group=group, name__iexact=name).first()
+                    active = _bool_from_csv(row.get("active", "1"))
+                    if player:
+                        player.name = name
+                        player.active = active
+                        player.save(update_fields=["name", "active", "updated_at"])
+                    else:
+                        Player.objects.create(group=group, name=name, active=active)
+                    imported += 1
+        except ValidationError as exc:
+            form.add_error(None, _validation_error_text(exc))
+        else:
+            messages.success(request, f"Se importaron {imported} jugadores.")
+            return redirect("players-list", group_id=group.id)
+
+    return render(
+        request,
+        "fulbacho/import_csv.html",
+        {
+            "group": group,
+            "form": form,
+            "title": "Importar jugadores",
+            "description": "Columnas esperadas: name, active. active acepta 1/0, true/false o si/no.",
+            "cancel_url": reverse("players-list", args=[group.id]),
+            "active_tab": "players",
+        },
+    )
+
+
+@login_required
 def player_create(request, group_id):
     group = get_group_for_user(request.user, group_id)
     form = PlayerForm(request.POST or None, group=group)
@@ -380,6 +536,145 @@ def matches_list(request, group_id):
             "group": group,
             "matches": matches,
             "guest_mode": False,
+            "active_tab": "matches",
+        },
+    )
+
+
+@login_required
+def matches_export_csv(request, group_id):
+    group = get_group_for_user(request.user, group_id)
+    matches = (
+        group.matches.prefetch_related("match_players__player", "goals__player")
+        .order_by("played_at", "created_at")
+    )
+    rows = []
+    for match in matches:
+        team_a_players = []
+        team_b_players = []
+        for entry in match.match_players.all():
+            if entry.team == Team.A:
+                team_a_players.append(entry.player.name)
+            else:
+                team_b_players.append(entry.player.name)
+        rows.append(
+            {
+                "played_at": timezone.localtime(match.played_at).isoformat(timespec="minutes"),
+                "modality": match.modality,
+                "location": match.location,
+                "team_a_name": match.team_a_name,
+                "team_b_name": match.team_b_name,
+                "score_a": match.score_a,
+                "score_b": match.score_b,
+                "team_a_players": " | ".join(sorted(team_a_players)),
+                "team_b_players": " | ".join(sorted(team_b_players)),
+                "goals_for": _goal_counts_for_export(match, own_goal=False),
+                "own_goals": _goal_counts_for_export(match, own_goal=True),
+            }
+        )
+    return _csv_response(
+        f"fulbacho-{group.code}-partidos.csv",
+        [
+            "played_at",
+            "modality",
+            "location",
+            "team_a_name",
+            "team_b_name",
+            "score_a",
+            "score_b",
+            "team_a_players",
+            "team_b_players",
+            "goals_for",
+            "own_goals",
+        ],
+        rows,
+    )
+
+
+@login_required
+def matches_import_csv(request, group_id):
+    group = get_group_for_user(request.user, group_id)
+    form = CsvImportForm(request.POST or None, request.FILES or None)
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            rows = _read_csv_upload(form.cleaned_data["file"])
+            _require_csv_columns(
+                rows,
+                {
+                    "played_at",
+                    "modality",
+                    "team_a_name",
+                    "team_b_name",
+                    "score_a",
+                    "score_b",
+                    "team_a_players",
+                    "team_b_players",
+                },
+            )
+            imported = 0
+            with transaction.atomic():
+                for row_number, row in enumerate(rows, start=2):
+                    team_a_players = [_player_for_csv_name(group, name) for name in _split_csv_list(row.get("team_a_players"))]
+                    team_b_players = [_player_for_csv_name(group, name) for name in _split_csv_list(row.get("team_b_players"))]
+                    modality = (row.get("modality") or "").strip()
+                    if modality not in MatchModality.values:
+                        raise ValidationError(f"Fila {row_number}: modality debe ser futbol5 o futbol6.")
+                    players_by_name = {player.name.lower(): player for player in team_a_players + team_b_players}
+                    team_map = {player.id: Team.A for player in team_a_players}
+                    team_map.update({player.id: Team.B for player in team_b_players})
+
+                    goals = []
+                    for player, count in _parse_goal_specs(row.get("goals_for", ""), players_by_name, row_number):
+                        player_team = team_map[player.id]
+                        goals.extend(
+                            {"team_scored_for": player_team, "player": player, "own_goal": False}
+                            for _ in range(count)
+                        )
+                    for player, count in _parse_goal_specs(row.get("own_goals", ""), players_by_name, row_number):
+                        player_team = team_map[player.id]
+                        opponent = Team.B if player_team == Team.A else Team.A
+                        goals.extend(
+                            {"team_scored_for": opponent, "player": player, "own_goal": True}
+                            for _ in range(count)
+                        )
+
+                    create_match(
+                        created_by=request.user,
+                        validated_data={
+                            "group": group,
+                            "played_at": _played_at_from_csv(row.get("played_at"), row_number),
+                            "modality": modality,
+                            "location": (row.get("location") or "").strip(),
+                            "team_a_name": (row.get("team_a_name") or "").strip() or "Equipo A",
+                            "team_b_name": (row.get("team_b_name") or "").strip() or "Equipo B",
+                            "score_a": _int_from_csv(row.get("score_a"), "score_a", row_number),
+                            "score_b": _int_from_csv(row.get("score_b"), "score_b", row_number),
+                            "team_a_players": [player.id for player in team_a_players],
+                            "team_b_players": [player.id for player in team_b_players],
+                            "goals": goals,
+                        },
+                    )
+                    imported += 1
+        except ValidationError as exc:
+            form.add_error(None, _validation_error_text(exc))
+        else:
+            messages.success(request, f"Se importaron {imported} partidos.")
+            return redirect("matches-list", group_id=group.id)
+
+    return render(
+        request,
+        "fulbacho/import_csv.html",
+        {
+            "group": group,
+            "form": form,
+            "title": "Importar partidos",
+            "description": (
+                "Columnas esperadas: played_at, modality, location, team_a_name, team_b_name, "
+                "score_a, score_b, team_a_players, team_b_players, goals_for, own_goals. "
+                "Separá jugadores con | y goles con formato Jugador:cantidad."
+            ),
+            "cancel_url": reverse("matches-list", args=[group.id]),
             "active_tab": "matches",
         },
     )

@@ -7,7 +7,11 @@
       <h1>Jugadores</h1>
     </div>
     {% if not guest_mode %}
-      <a class="button" href="{% url 'player-create' group.id %}">Nuevo jugador</a>
+      <div class="actions">
+        <a class="button ghost" href="{% url 'players-export-csv' group.id %}">Exportar CSV</a>
+        <a class="button ghost" href="{% url 'players-import-csv' group.id %}">Importar CSV</a>
+        <a class="button" href="{% url 'player-create' group.id %}">Nuevo jugador</a>
+      </div>
     {% endif %}
   </div>
 

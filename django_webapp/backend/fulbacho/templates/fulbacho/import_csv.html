@@ -1,0 +1,27 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}{{ title }} — {{ group.name }}{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">CSV</p>
+      <h1>{{ title }}</h1>
+      <p class="muted">{{ description }}</p>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="stacked-form auth-card">
+    {% csrf_token %}
+    {% include "fulbacho/partials/form_errors.html" with form=form %}
+    {% for field in form %}
+      <label>
+        {{ field.label }}
+        {{ field }}
+        {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+      </label>
+    {% endfor %}
+    <div class="actions">
+      <button class="button" type="submit">Importar CSV</button>
+      <a class="button ghost" href="{{ cancel_url }}">Cancelar</a>
+    </div>
+  </form>
+{% endblock %}

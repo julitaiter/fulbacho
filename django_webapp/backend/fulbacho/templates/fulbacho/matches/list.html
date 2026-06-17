@@ -7,7 +7,11 @@
       <h1>Partidos</h1>
     </div>
     {% if not guest_mode %}
-      <a class="button" href="{% url 'match-create' group.id %}">Nuevo partido</a>
+      <div class="actions">
+        <a class="button ghost" href="{% url 'matches-export-csv' group.id %}">Exportar CSV</a>
+        <a class="button ghost" href="{% url 'matches-import-csv' group.id %}">Importar CSV</a>
+        <a class="button" href="{% url 'match-create' group.id %}">Nuevo partido</a>
+      </div>
     {% endif %}
   </div>
 

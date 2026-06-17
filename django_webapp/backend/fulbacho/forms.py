@@ -68,6 +68,16 @@ class GuestCodeForm(JoinGroupForm):
     pass
 
 
+class CsvImportForm(forms.Form):
+    file = forms.FileField(label="Archivo CSV")
+
+    def clean_file(self):
+        uploaded_file = self.cleaned_data["file"]
+        if not uploaded_file.name.lower().endswith(".csv"):
+            raise forms.ValidationError("Subí un archivo con extensión .csv.")
+        return uploaded_file
+
+
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Player

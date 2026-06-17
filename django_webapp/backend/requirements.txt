@@ -2,3 +2,6 @@ Django>=5.0,<5.3
 dj-database-url>=2.2
 python-dotenv>=1.0
 psycopg[binary]>=3.2
+gunicorn==26.0.0
+packaging==26.2
+whitenoise==6.12.0

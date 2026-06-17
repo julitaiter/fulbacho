@@ -169,6 +169,31 @@ def _warn_unassigned_goals(request, match: Match) -> None:
         )
 
 
+def _match_team_summaries(match: Match) -> dict[str, list[dict]]:
+    goals_by_player = {}
+    for goal in match.goals.all():
+        if not goal.player_id:
+            continue
+        player_key = goal.player_id
+        goals_by_player.setdefault(player_key, {"for": 0, "against": 0})
+        if goal.own_goal:
+            goals_by_player[player_key]["against"] += 1
+        else:
+            goals_by_player[player_key]["for"] += 1
+
+    summaries = {Team.A: [], Team.B: []}
+    for entry in match.match_players.all():
+        counts = goals_by_player.get(entry.player_id, {"for": 0, "against": 0})
+        summaries[entry.team].append(
+            {
+                "player": entry.player,
+                "goals_for": counts["for"],
+                "own_goals": counts["against"],
+            }
+        )
+    return summaries
+
+
 def landing(request):
     if request.user.is_authenticated:
         return redirect("groups-index")
@@ -374,6 +399,7 @@ def match_detail(request, group_id, match_id):
         {
             "group": group,
             "match": match,
+            "team_summaries": _match_team_summaries(match),
             "guest_mode": False,
             "active_tab": "matches",
         },
@@ -555,6 +581,7 @@ def guest_match_detail(request, code, match_id):
         {
             "group": group,
             "match": match,
+            "team_summaries": _match_team_summaries(match),
             "guest_mode": True,
             "active_tab": "matches",
         },

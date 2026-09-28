@@ -1,0 +1,61 @@
+{% extends "fulbacho/base.html" %}
+{% load static %}
+{% block title %}{{ title }} — {{ group.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Partidos</p>
+    <h1>{{ title }}</h1>
+    <p class="muted">El formato define el mínimo por equipo: F5 exige 5, F6 exige 6, F8 exige 8, etc. Podés cargar jugadores extra.</p>
+  </div>
+</div>
+
+<form method="post" class="match-form" data-match-editor>
+  {% csrf_token %}
+  <section class="panel">
+    <h2>1. Datos del partido</h2>
+    {% include "fulbacho/partials/form_errors.html" with form=match_form %}
+    <div class="form-grid">
+      {% for field in match_form %}
+        <label>{{ field.label }}{{ field }}{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</label>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel roster-editor-panel">
+    <div class="roster-live-error" data-roster-error role="alert" aria-live="polite"></div>
+    <div class="match-team-grid roster-team-grid">
+      {% for team in team_columns %}
+        <section class="roster-team" data-team="{{ team.side }}">
+          <h2>Equipo {{ team.side }}</h2>
+          <div class="roster-column-head" aria-hidden="true">
+            <span></span><span>A favor</span><span>En contra</span>
+          </div>
+          <div class="participant-slots" data-slots="{{ team.side }}">
+            {% for row in team.rows %}
+              <article class="participant-slot" data-side="{{ team.side }}" data-index="{{ row.index }}" data-selected-name="{% if row.player_id %}{{ row.name }}{% endif %}" data-goals="{{ row.goals_for }}" data-own-goals="{{ row.own_goals }}">
+                <div class="participant-combobox">
+                  <input type="hidden" name="participant_{{ team.side }}_player_id_{{ row.index }}" value="{{ row.player_id }}" data-player-id>
+                  <input type="text" name="participant_{{ team.side }}_name_{{ row.index }}" value="{{ row.name }}" maxlength="100" placeholder="Jugador o buscar…" autocomplete="off" role="combobox" aria-label="Jugador del equipo {{ team.side }}" aria-autocomplete="list" aria-expanded="false" data-participant-name>
+                  <div class="autocomplete-list" role="listbox" hidden data-suggestions></div>
+                </div>
+                <input class="participant-goals" type="number" min="0" name="participant_{{ team.side }}_goals_{{ row.index }}" value="{{ row.goals_for }}" aria-label="Goles a favor de {{ row.name|default:'este jugador' }}" data-goals-input>
+                <input class="participant-goals" type="number" min="0" name="participant_{{ team.side }}_own_goals_{{ row.index }}" value="{{ row.own_goals }}" aria-label="Goles en contra de {{ row.name|default:'este jugador' }}" data-own-goals-input>
+                <button type="button" class="slot-remove" aria-label="Eliminar jugador" title="Eliminar jugador" data-remove-slot>×</button>
+              </article>
+            {% endfor %}
+          </div>
+          <button type="button" class="button ghost add-player" data-add-player="{{ team.side }}">+ Agregar jugador</button>
+        </section>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="button" type="submit">{% if match %}Guardar cambios{% else %}Guardar partido{% endif %}</button>
+    <a class="button ghost" href="{% url 'matches-list' group.id %}">Cancelar</a>
+  </div>
+</form>
+{{ autocomplete_players|json_script:"match-player-options" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/match-form.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fulbacho
+      POSTGRES_USER: fulbacho
+      POSTGRES_PASSWORD: fulbacho
+    volumes:
+      - fulbacho_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fulbacho -d fulbacho"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./api
+    environment:
+      APP_NAME: Fulbacho API
+      ENVIRONMENT: development
+      DEBUG: "true"
+      API_V1_PREFIX: /api/v1
+      SECRET_KEY: local-dev-secret-change-me
+      ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+      REFRESH_TOKEN_EXPIRE_DAYS: "30"
+      DATABASE_URL: postgresql+psycopg://fulbacho:fulbacho@db:5432/fulbacho
+      CORS_ORIGINS: http://localhost:8000,http://127.0.0.1:8000
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8001:8000"
+
+  web:
+    build: ./web
+    environment:
+      SECRET_KEY: local-web-secret-change-me
+      DEBUG: "true"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      API_BASE_URL: http://api:8000/api/v1
+      WEB_DATABASE_URL: sqlite:////app/session-data/web.sqlite3
+    depends_on:
+      - api
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - web_sessions:/app/session-data
+
+volumes:
+  fulbacho_pgdata:
+  web_sessions:

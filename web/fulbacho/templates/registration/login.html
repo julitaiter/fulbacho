@@ -1,0 +1,16 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Login — Fulbacho{% endblock %}
+{% block content %}
+<section class="auth-card">
+  <h1>Iniciar sesión</h1>
+  <form method="post" class="stacked-form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% include "fulbacho/partials/form_errors.html" with form=form %}
+    {% for field in form %}
+      <label>{{ field.label }}{{ field }}{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</label>
+    {% endfor %}
+    <button class="button" type="submit">Entrar</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}{{ title }} — Fulbacho{% endblock %}
+{% block content %}
+  <section class="auth-card">
+    <h1>{{ title }}</h1>
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {% include "fulbacho/partials/form_errors.html" with form=form %}
+      {% for field in form %}
+        <label>
+          {{ field.label }}
+          {{ field }}
+          {% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+        </label>
+      {% endfor %}
+      <button class="button" type="submit">Guardar</button>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends "fulbacho/base.html" %}
+{% load static %}
+
+{% block title %}Fulbacho — fútbol entre amigos{% endblock %}
+
+{% block content %}
+<section class="hero landing-hero">
+  <div class="hero-content" data-reveal>
+    <p class="eyebrow">Fútbol entre amigos</p>
+
+    <h1>Los partidos pasan. Las estadísticas quedan.</h1>
+
+    <p class="hero-copy">
+      Registrá los partidos con tus amigos, guardá el historial del grupo
+      y descubrí quién gana más, quién hace más goles y quién se está
+      convirtiendo en especialista en goles en contra.
+    </p>
+
+    <div class="actions hero-actions">
+      <a class="button" href="{% url 'register' %}">Crear mi grupo</a>
+      <a class="button secondary" href="{% url 'login' %}">Iniciar sesión</a>
+      <a class="button ghost" href="{% url 'guest-code' %}">Entrar con un código</a>
+    </div>
+
+    <div class="hero-pills" aria-label="Características principales">
+      <span>F5, F6, F8...</span>
+      <span>Jugadores casuales</span>
+      <span>Rankings automáticos</span>
+    </div>
+  </div>
+
+  <div class="hero-visual" data-reveal data-reveal-delay="120">
+    <div class="hero-glow hero-glow-one"></div>
+    <div class="hero-glow hero-glow-two"></div>
+
+    <article class="match-preview">
+      <div class="preview-header">
+        <div class="preview-status">
+          <span class="status-dot"></span>
+          Último partido
+        </div>
+        <span class="preview-format">F5</span>
+      </div>
+
+      <div class="preview-score">
+        <div class="preview-team">
+          <span>Los Pibes</span>
+          <strong>6</strong>
+        </div>
+
+        <span class="preview-separator">–</span>
+
+        <div class="preview-team align-right">
+          <span>La Banda</span>
+          <strong>4</strong>
+        </div>
+      </div>
+
+      <p class="preview-meta">
+        Jueves · 22:30 · El Poli
+      </p>
+
+      <div class="preview-scorers">
+        <div>
+          <span class="preview-avatar">JT</span>
+          <span><strong>Juli</strong><small>3 goles</small></span>
+        </div>
+        <div>
+          <span class="preview-avatar">NA</span>
+          <span><strong>Nico</strong><small>2 goles</small></span>
+        </div>
+        <div>
+          <span class="preview-avatar casual">FA</span>
+          <span><strong>Fede</strong><small>Casual · 1 gol</small></span>
+        </div>
+      </div>
+    </article>
+
+    <div class="preview-floating-card preview-ranking">
+      <span>Goleador del grupo</span>
+      <strong>Juli · 12 ⚽</strong>
+    </div>
+
+    <div class="preview-floating-card preview-streak">
+      <span>Racha actual</span>
+      <strong>3 victorias 🔥</strong>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section" data-reveal>
+  <div class="section-heading">
+    <p class="eyebrow">¿Cómo funciona?</p>
+    <h2>Del partido a la tabla, sin planillas.</h2>
+    <p>
+      Carguen lo que pasó en la cancha. Fulbacho se ocupa de ordenar el resto.
+    </p>
+  </div>
+
+  <div class="feature-grid">
+    <article class="feature-card" data-reveal data-reveal-delay="0">
+      <span class="feature-number">01</span>
+      <div class="feature-icon">👥</div>
+      <h3>Armá tu grupo</h3>
+      <p>
+        Creá el espacio de tu grupo de amigos e invitá al resto para que todos
+        compartan el mismo historial.
+      </p>
+    </article>
+
+    <article class="feature-card" data-reveal data-reveal-delay="90">
+      <span class="feature-number">02</span>
+      <div class="feature-icon">⚽</div>
+      <h3>Registrá los partidos</h3>
+      <p>
+        Cargá equipos, resultado y goleadores. Si vino alguien por única vez,
+        sumalo como jugador casual.
+      </p>
+    </article>
+
+    <article class="feature-card" data-reveal data-reveal-delay="180">
+      <span class="feature-number">03</span>
+      <div class="feature-icon">📊</div>
+      <h3>Que hablen los números</h3>
+      <p>
+        Historial, goles, victorias, participación, rachas y rankings se
+        actualizan a medida que juegan.
+      </p>
+    </article>
+  </div>
+</section>
+
+<section class="landing-section landing-highlight" data-reveal>
+  <div class="landing-highlight-copy">
+    <p class="eyebrow">Todos pueden jugar</p>
+    <h2>El amigo del amigo también cuenta.</h2>
+    <p>
+      No hace falta llenar el grupo de jugadores que vinieron una sola vez.
+      Sumalos como casuales al partido y, si después se vuelven habitués,
+      podés convertirlos en jugadores permanentes conservando su historia.
+    </p>
+
+    <div class="highlight-list">
+      <span>✓ Habituales y casuales</span>
+      <span>✓ Historial recuperable</span>
+      <span>✓ Sin duplicar jugadores</span>
+    </div>
+  </div>
+
+  <div class="casual-demo" data-reveal data-reveal-delay="120">
+    <div class="casual-demo-head">
+      <span>Plantel del jueves</span>
+      <strong>7 jugadores</strong>
+    </div>
+
+    <div class="casual-player">
+      <span class="preview-avatar">JT</span>
+      <div>
+        <strong>Juli</strong>
+        <small>Habitual</small>
+      </div>
+      <span class="player-type">Jugador</span>
+    </div>
+
+    <div class="casual-player">
+      <span class="preview-avatar">NA</span>
+      <div>
+        <strong>Nico</strong>
+        <small>Habitual</small>
+      </div>
+      <span class="player-type">Jugador</span>
+    </div>
+
+    <div class="casual-player">
+      <span class="preview-avatar casual">FA</span>
+      <div>
+        <strong>Fede amigo de Nico</strong>
+        <small>Vino por hoy</small>
+      </div>
+      <span class="player-type casual-type">Casual</span>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section" data-reveal>
+  <div class="section-heading">
+    <p class="eyebrow">La verdadera competencia</p>
+    <h2>Las discusiones de siempre, ahora con datos.</h2>
+  </div>
+
+  <div class="ranking-grid">
+    <article class="ranking-card">
+      <span class="ranking-emoji">⚽</span>
+      <div>
+        <span>Goleadores</span>
+        <strong>¿Quién la manda más veces a guardar?</strong>
+      </div>
+    </article>
+
+    <article class="ranking-card">
+      <span class="ranking-emoji">🏆</span>
+      <div>
+        <span>Victorias</span>
+        <strong>¿Quién tiene el mejor porcentaje?</strong>
+      </div>
+    </article>
+
+    <article class="ranking-card">
+      <span class="ranking-emoji">🔥</span>
+      <div>
+        <span>Rachas</span>
+        <strong>¿Quién viene intratable?</strong>
+      </div>
+    </article>
+
+    <article class="ranking-card danger-ranking">
+      <span class="ranking-emoji">🙃</span>
+      <div>
+        <span>Goles en contra</span>
+        <strong>Una tabla que nadie quiere liderar.</strong>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="landing-cta" data-reveal>
+  <div>
+    <p class="eyebrow">¿Juegan todas las semanas?</p>
+    <h2>Dejen de discutir quién ganó más.</h2>
+    <p>
+      Creá el grupo, carguen los partidos y que Fulbacho se acuerde por ustedes.
+    </p>
+  </div>
+
+  <div class="actions">
+    <a class="button landing-cta-button" href="{% url 'register' %}">
+      Empezar ahora
+    </a>
+    <a class="button landing-cta-ghost" href="{% url 'guest-code' %}">
+      Ya tengo un código
+    </a>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/landing.js' %}" defer></script>
+{% endblock %}

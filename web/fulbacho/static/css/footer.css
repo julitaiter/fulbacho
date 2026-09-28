@@ -1,0 +1,120 @@
+/* ==========================================================
+   Footer
+   Reutiliza las variables definidas en app.css
+   ========================================================== */
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main.container {
+  flex: 1 0 auto;
+}
+
+.site-footer {
+  margin-top: auto;
+  background: #0f1d16;
+  color: rgba(255, 255, 255, .82);
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+
+.site-footer-inner {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2.6rem 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.footer-brand-block {
+  max-width: 430px;
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  color: white;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.footer-brand:hover {
+  color: white;
+  text-decoration: none;
+}
+
+.footer-ball {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.footer-brand-block p {
+  margin: .8rem 0 0;
+  color: rgba(255, 255, 255, .58);
+  line-height: 1.6;
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .7rem 1.1rem;
+  max-width: 500px;
+}
+
+.footer-nav a {
+  color: rgba(255, 255, 255, .72);
+  font-size: .9rem;
+  font-weight: 750;
+  transition:
+    color .2s ease,
+    transform .2s ease;
+}
+
+.footer-nav a:hover {
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.site-footer-bottom {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1rem 0 1.3rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .42);
+  font-size: .78rem;
+}
+
+.footer-joke {
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .site-footer-inner,
+  .site-footer-bottom {
+    flex-direction: column;
+  }
+
+  .site-footer-inner {
+    padding-top: 2rem;
+  }
+
+  .footer-nav {
+    justify-content: flex-start;
+  }
+
+  .footer-joke {
+    text-align: left;
+  }
+}

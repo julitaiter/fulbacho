@@ -1,0 +1,13 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Partido — {{ group.name }}{% endblock %}
+{% block content %}
+<div class="match-detail-hero">
+  <div><p class="eyebrow">{{ match.played_at|date:"d/m/Y H:i" }}{% if match.location %} · {{ match.location }}{% endif %}</p><div class="match-scoreboard"><div class="score-team"><span>{{ match.team_a_name }}</span><strong>{{ match.score_a }}</strong></div><span class="score-separator">-</span><div class="score-team align-right"><span>{{ match.team_b_name }}</span><strong>{{ match.score_b }}</strong></div></div><p class="muted">F{{ match.players_per_team }} · {{ match.participants|length }} participantes · {{ match.goals|length }} goles</p></div>
+  <div class="actions">{% if guest_mode %}<a class="button ghost hero-action" href="{% url 'guest-matches' group.code %}">Volver al listado</a>{% else %}<a class="button ghost hero-action" href="{% url 'matches-list' group.id %}">Volver al listado</a>{% if match.can_edit %}<a class="button hero-action" href="{% url 'match-edit' group.id match.id %}">Editar</a>{% endif %}{% endif %}</div>
+</div>
+<div class="match-team-grid">
+  <section class="team-board"><div class="team-board-header"><span>Equipo A</span><strong>{{ match.team_a_name }}</strong></div><div class="player-score-list">{% for item in team_summaries.A %}<article class="player-score-row"><span class="player-name">{{ item.name }}{% if item.casual %} <small class="casual-badge">casual</small>{% endif %}</span><span class="goal-pill"><span class="ball-icon">⚽</span>{{ item.goals_for }}</span><span class="goal-pill own-goal-pill"><span class="ball-icon">⚽</span>{{ item.own_goals }}</span></article>{% empty %}<p class="muted">Sin jugadores cargados.</p>{% endfor %}</div></section>
+  <section class="team-board"><div class="team-board-header"><span>Equipo B</span><strong>{{ match.team_b_name }}</strong></div><div class="player-score-list">{% for item in team_summaries.B %}<article class="player-score-row"><span class="player-name">{{ item.name }}{% if item.casual %} <small class="casual-badge">casual</small>{% endif %}</span><span class="goal-pill"><span class="ball-icon">⚽</span>{{ item.goals_for }}</span><span class="goal-pill own-goal-pill"><span class="ball-icon">⚽</span>{{ item.own_goals }}</span></article>{% empty %}<p class="muted">Sin jugadores cargados.</p>{% endfor %}</div></section>
+</div>
+<section class="panel match-goal-summary"><div><h2>Resumen de goles</h2><p class="muted">Los goles que completan el marcador sin autor quedan registrados como anónimos.</p></div><div class="goal-legend"><span class="goal-pill"><span class="ball-icon">⚽</span>A favor</span><span class="goal-pill own-goal-pill"><span class="ball-icon">⚽</span>En contra</span></div></section>
+{% endblock %}

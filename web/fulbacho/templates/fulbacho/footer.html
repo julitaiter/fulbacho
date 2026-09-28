@@ -1,0 +1,39 @@
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <div class="footer-brand-block">
+      <a class="footer-brand" href="{% if request.user.is_authenticated %}{% url 'groups-index' %}{% else %}{% url 'landing' %}{% endif %}">
+        <span class="footer-ball">⚽</span>
+        <span>Fulbacho</span>
+      </a>
+
+      <p>
+        Los partidos pasan. Las estadísticas quedan.
+      </p>
+    </div>
+
+    <nav class="footer-nav" aria-label="Navegación del pie">
+      {% if guest_mode %}
+        <a href="{% url 'guest-code' %}">Cambiar código</a>
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+        <a href="{% url 'register' %}">Registrarse</a>
+      {% elif request.user.is_authenticated %}
+        <a href="{% url 'groups-index' %}">Mis grupos</a>
+        {% if group %}
+          <a href="{% url 'group-dashboard' group.id %}">Dashboard</a>
+          <a href="{% url 'matches-list' group.id %}">Partidos</a>
+          <a href="{% url 'players-list' group.id %}">Jugadores</a>
+        {% endif %}
+      {% else %}
+        <a href="{% url 'landing' %}">Inicio</a>
+        <a href="{% url 'guest-code' %}">Entrar con un código</a>
+        <a href="{% url 'login' %}">Iniciar sesión</a>
+        <a href="{% url 'register' %}">Crear cuenta</a>
+      {% endif %}
+    </nav>
+  </div>
+
+  <div class="site-footer-bottom">
+    <span>© {% now "Y" %} Fulbacho</span>
+    <span class="footer-joke">Hecho para dejar de discutir quién hizo más goles.</span>
+  </div>
+</footer>

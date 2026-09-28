@@ -1,0 +1,11 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Jugadores — {{ group.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><p class="eyebrow">Plantel</p><h1>Jugadores</h1></div>
+  {% if not guest_mode %}<div class="actions"><a class="button ghost" href="{% url 'players-export-csv' group.id %}">Exportar CSV</a><a class="button ghost" href="{% url 'players-import-csv' group.id %}">Importar CSV</a><a class="button secondary" href="{% url 'casuals-manage' group.id %}">Casuales</a><a class="button" href="{% url 'player-create' group.id %}">Nuevo jugador</a></div>{% endif %}
+</div>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>Jugador</th><th>Partidos</th><th>Goles</th><th>En contra</th><th>% victorias</th><th></th></tr></thead><tbody>
+{% for stats in player_stats %}<tr><td>{{ stats.name }}</td><td>{{ stats.matches_played|default:0 }}</td><td>{{ stats.goals_for|default:0 }}</td><td>{{ stats.own_goals|default:0 }}</td><td>{{ stats.win_rate|default:0 }}%</td><td>{% if guest_mode %}<a href="{% url 'guest-player-detail' group.code stats.player_id %}">Ver</a>{% else %}<a href="{% url 'player-detail' group.id stats.player_id %}">Ver</a>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">Todavía no hay jugadores.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

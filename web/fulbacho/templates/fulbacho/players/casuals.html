@@ -1,0 +1,11 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Jugadores casuales — {{ group.name }}{% endblock %}
+{% block content %}
+<div class="page-header"><div><p class="eyebrow">Plantel</p><h1>Jugadores casuales</h1><p class="muted">Participaciones de personas que jugaron sin quedar registradas como jugadores habituales.</p></div></div>
+{% if casuals %}
+<div class="two-columns">
+  <section class="panel"><h2>Convertir casual → habitual</h2><p class="muted">Elegí una o más participaciones que correspondan a la misma persona. Al convertirla, recupera esas estadísticas históricas.</p><form method="post" class="stacked-form">{% csrf_token %}<input type="hidden" name="action" value="promote">{% include "fulbacho/partials/form_errors.html" with form=promote_form %}{% for field in promote_form %}<label>{{ field.label }}{{ field }}{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</label>{% endfor %}<button class="button" type="submit">Crear jugador habitual</button></form></section>
+  <section class="panel"><h2>Vincular a jugador existente</h2><p class="muted">Usalo si la persona ya tiene un jugador habitual y querés sumar apariciones casuales anteriores.</p><form method="post" class="stacked-form">{% csrf_token %}<input type="hidden" name="action" value="attach">{% include "fulbacho/partials/form_errors.html" with form=attach_form %}{% for field in attach_form %}<label>{{ field.label }}{{ field }}{% for error in field.errors %}<span class="field-error">{{ error }}</span>{% endfor %}</label>{% endfor %}<button class="button secondary" type="submit">Vincular participaciones</button></form></section>
+</div>
+{% else %}<div class="empty-state"><h2>No hay participaciones casuales pendientes</h2><p>Cuando cargues a un “amigo del amigo” en un partido, va a aparecer acá.</p></div>{% endif %}
+{% endblock %}

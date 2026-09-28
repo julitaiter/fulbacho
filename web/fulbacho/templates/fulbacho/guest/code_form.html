@@ -1,0 +1,20 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Invitado — Fulbacho{% endblock %}
+{% block content %}
+  <section class="auth-card">
+    <p class="eyebrow">Modo invitado</p>
+    <h1>Ver grupo con código</h1>
+    <p class="muted">Ingresá el código de 6 caracteres. Vas a poder ver dashboard, partidos y jugadores sin modificar nada.</p>
+
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {% include "fulbacho/partials/form_errors.html" with form=form %}
+      <label>
+        {{ form.code.label }}
+        {{ form.code }}
+        {% for error in form.code.errors %}<span class="field-error">{{ error }}</span>{% endfor %}
+      </label>
+      <button class="button" type="submit">Entrar como invitado</button>
+    </form>
+  </section>
+{% endblock %}

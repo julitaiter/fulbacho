@@ -54,6 +54,7 @@ cd /app/web
 run_phase python manage.py check
 cd /app/api
 run_phase alembic upgrade head
+run_phase python scripts/bootstrap_superuser.py
 setsid uvicorn app.main:app --host 127.0.0.1 --port 8001 &
 api_pid=$!
 

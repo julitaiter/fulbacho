@@ -1,0 +1,19 @@
+{% extends "fulbacho/admin/base.html" %}
+{% block admin_content %}
+  <h1>{{ admin_user.display_name }}</h1>
+  <article class="card">
+    <p>{{ admin_user.email }}</p><p>Activo: {{ admin_user.is_active|yesno:"Sí,No" }}</p>
+    <p>Superusuario global: {{ admin_user.is_superuser|yesno:"Sí,No" }}</p>
+    <div class="actions">
+      <form method="post" action="{% url 'admin-user-active' admin_user.id %}">
+        {% csrf_token %}<input type="hidden" name="value" value="{{ admin_user.is_active|yesno:'false,true' }}">
+        <button class="button secondary" type="submit">{% if admin_user.is_active %}Desactivar usuario{% else %}Activar usuario{% endif %}</button>
+      </form>
+      <form method="post" action="{% url 'admin-user-superuser' admin_user.id %}">
+        {% csrf_token %}<input type="hidden" name="value" value="{{ admin_user.is_superuser|yesno:'false,true' }}">
+        <button class="button secondary" type="submit">{% if admin_user.is_superuser %}Quitar superusuario{% else %}Otorgar superusuario{% endif %}</button>
+      </form>
+    </div>
+    {% if admin_user.id|stringformat:'s' == request.user.id %}<p class="muted">Estás modificando tu propia cuenta. Si quitás tu acceso, necesitarás otro superusuario para recuperarlo.</p>{% endif %}
+  </article>
+{% endblock %}

@@ -65,10 +65,40 @@ class GuestAPI:
     def player_stats_list(self, code): return self.client.get(f"/guest/{quote(code)}/stats/players", auth=False)
 
 
+class AdminAPI:
+    def __init__(self, client):
+        self.client = client
+
+    def users(self, *, offset=0, limit=50):
+        return self.client.get("/admin/users", params={"offset": offset, "limit": limit})
+
+    def user(self, user_id):
+        return self.client.get(f"/admin/users/{user_id}")
+
+    def update_user(self, user_id, **values):
+        return self.client.patch(f"/admin/users/{user_id}", json=values)
+
+    def groups(self, *, offset=0, limit=50):
+        return self.client.get("/admin/groups", params={"offset": offset, "limit": limit})
+
+    def group(self, group_id):
+        return self.client.get(f"/admin/groups/{group_id}")
+
+    def members(self, group_id):
+        return self.client.get(f"/admin/groups/{group_id}/members")
+
+    def matches(self, *, offset=0, limit=50):
+        return self.client.get("/admin/matches", params={"offset": offset, "limit": limit})
+
+    def match(self, match_id):
+        return self.client.get(f"/admin/matches/{match_id}")
+
+
 class FulbachoAPI:
     def __init__(self, django_request=None):
         self.client = ApiClient(django_request)
         self.auth = AuthAPI(self.client)
+        self.admin = AdminAPI(self.client)
         self.groups = GroupsAPI(self.client)
         self.players = PlayersAPI(self.client)
         self.matches = MatchesAPI(self.client)

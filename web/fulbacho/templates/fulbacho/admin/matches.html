@@ -1,0 +1,10 @@
+{% extends "fulbacho/admin/base.html" %}
+{% block admin_content %}
+  <h1>Partidos</h1>
+  <div class="cards-grid">{% for match in matches %}<article class="card">
+    <h2><a href="{% url 'admin-match-detail' match.id %}">{{ match.team_a_name }} {{ match.score_a }} – {{ match.score_b }} {{ match.team_b_name }}</a></h2>
+    <p>{{ match.played_at|date:"d/m/Y H:i" }} · {{ match.players_per_team }} por equipo</p>
+    <a href="{% url 'admin-group-detail' match.group_id %}">Ver grupo</a>
+  </article>{% empty %}<p>No hay partidos en esta página.</p>{% endfor %}</div>
+  {% include "fulbacho/admin/pagination.html" %}
+{% endblock %}

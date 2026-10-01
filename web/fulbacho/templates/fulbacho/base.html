@@ -27,6 +27,9 @@
       {% elif request.user.is_authenticated %}
         <span class="muted">{{ request.user.display_name }}</span>
         <a href="{% url 'groups-index' %}">Mis grupos</a>
+        {% if request.user.is_superuser %}
+          <a href="{% url 'admin-dashboard' %}">Administración</a>
+        {% endif %}
 
         <form class="logout-form" action="{% url 'logout' %}" method="post">
           {% csrf_token %}

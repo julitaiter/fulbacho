@@ -1,0 +1,10 @@
+{% extends "fulbacho/admin/base.html" %}
+{% block admin_content %}
+  <h1>{{ match.team_a_name }} {{ match.score_a }} – {{ match.score_b }} {{ match.team_b_name }}</h1>
+  <p>{{ match.played_at|date:"d/m/Y H:i" }} · {{ match.players_per_team }} por equipo · {{ match.location|default:"Sin ubicación" }}</p>
+  <p><a href="{% url 'admin-group-detail' match.group_id %}">Ver grupo</a></p>
+  <h2>Participantes</h2>
+  <div class="card"><ul>{% for participant in match.participants %}<li>{{ participant.display_name }} · Equipo {{ participant.team }}</li>{% empty %}<li>Sin participantes.</li>{% endfor %}</ul></div>
+  <h2>Goles</h2>
+  <div class="card"><ul>{% for goal in match.goals %}<li>Equipo {{ goal.team_scored_for }}{% if goal.own_goal %} · En contra{% endif %}{% if not goal.participant_id %} · Anónimo{% endif %}</li>{% empty %}<li>Sin goles.</li>{% endfor %}</ul></div>
+{% endblock %}

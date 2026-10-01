@@ -170,6 +170,9 @@ class ApiClient:
     def patch(self, path: str, *, json=None, auth: bool = True):
         return self._request("PATCH", path, json=json, auth=auth)
 
+    def patch(self, path: str, *, json=None, auth: bool = True):
+        return self._request("PATCH", path, json=json, auth=auth)
+
     def put(self, path: str, *, json=None, auth: bool = True):
         return self._request("PUT", path, json=json, auth=auth)
 

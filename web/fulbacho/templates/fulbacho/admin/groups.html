@@ -1,0 +1,9 @@
+{% extends "fulbacho/admin/base.html" %}
+{% block admin_content %}
+  <h1>Grupos</h1>
+  <div class="cards-grid">{% for group in groups %}<article class="card">
+    <h2><a href="{% url 'admin-group-detail' group.id %}">{{ group.name }}</a></h2>
+    <p>Código: {{ group.code }}</p><p>Creado: {{ group.created_at|date:"d/m/Y H:i" }}</p>
+  </article>{% empty %}<p>No hay grupos en esta página.</p>{% endfor %}</div>
+  {% include "fulbacho/admin/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "fulbacho/admin/base.html" %}
+{% block admin_content %}
+  <h1>Usuarios</h1>
+  <div class="card"><table class="table">
+    <thead><tr><th>Nombre</th><th>Email</th><th>Activo</th><th>Superusuario global</th></tr></thead>
+    <tbody>{% for user in users %}<tr>
+      <td><a href="{% url 'admin-user-detail' user.id %}">{{ user.display_name }}</a></td>
+      <td>{{ user.email }}</td><td>{{ user.is_active|yesno:"Sí,No" }}</td><td>{{ user.is_superuser|yesno:"Sí,No" }}</td>
+    </tr>{% empty %}<tr><td colspan="4">No hay usuarios en esta página.</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% include "fulbacho/admin/pagination.html" %}
+{% endblock %}

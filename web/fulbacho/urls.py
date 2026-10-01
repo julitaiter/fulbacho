@@ -1,8 +1,17 @@
 from django.urls import path
 
-from . import views
+from . import admin_views, views
 
 urlpatterns = [
+    path("admin/", admin_views.dashboard, name="admin-dashboard"),
+    path("admin/users/", admin_views.users, name="admin-users"),
+    path("admin/users/<uuid:user_id>/", admin_views.user_detail, name="admin-user-detail"),
+    path("admin/users/<uuid:user_id>/active/", admin_views.user_active, name="admin-user-active"),
+    path("admin/users/<uuid:user_id>/superuser/", admin_views.user_superuser, name="admin-user-superuser"),
+    path("admin/groups/", admin_views.groups, name="admin-groups"),
+    path("admin/groups/<uuid:group_id>/", admin_views.group_detail, name="admin-group-detail"),
+    path("admin/matches/", admin_views.matches, name="admin-matches"),
+    path("admin/matches/<uuid:match_id>/", admin_views.match_detail, name="admin-match-detail"),
     path("", views.landing, name="landing"),
     path("accounts/login/", views.login_view, name="login"),
     path("accounts/logout/", views.logout_view, name="logout"),

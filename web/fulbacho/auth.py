@@ -11,6 +11,7 @@ class ApiUser:
     email: str
     display_name: str
     is_active: bool = True
+    is_superuser: bool = False
 
     @property
     def is_authenticated(self) -> bool:
@@ -29,6 +30,7 @@ class AnonymousApiUser:
     email = ""
     display_name = ""
     is_active = False
+    is_superuser = False
     is_authenticated = False
     is_anonymous = True
 
@@ -49,6 +51,7 @@ def user_from_session(session):
             email=payload["email"],
             display_name=payload["display_name"],
             is_active=payload.get("is_active", True),
+            is_superuser=payload.get("is_superuser", False),
         )
     except (KeyError, TypeError):
         return AnonymousApiUser()

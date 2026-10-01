@@ -1,0 +1,11 @@
+{% extends "fulbacho/base.html" %}
+{% block title %}Administración — Fulbacho{% endblock %}
+{% block content %}
+  <nav class="group-nav" aria-label="Administración global">
+    <a href="{% url 'admin-dashboard' %}">Administración</a>
+    <a href="{% url 'admin-users' %}">Usuarios</a>
+    <a href="{% url 'admin-groups' %}">Grupos</a>
+    <a href="{% url 'admin-matches' %}">Partidos</a>
+  </nav>
+  {% block admin_content %}{% endblock %}
+{% endblock %}

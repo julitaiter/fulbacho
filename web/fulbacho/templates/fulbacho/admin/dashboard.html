@@ -1,0 +1,10 @@
+{% extends "fulbacho/admin/base.html" %}
+{% block admin_content %}
+  <div class="page-header"><div><p class="eyebrow">Fulbacho</p><h1>Administración global</h1></div></div>
+  <p>Gestioná usuarios y consultá todos los grupos y partidos. Este acceso es independiente de los roles de cada grupo.</p>
+  <div class="cards-grid">
+    <article class="card"><h2>Usuarios</h2><p>Estado de las cuentas y permisos globales.</p><a class="button" href="{% url 'admin-users' %}">Ver usuarios</a></article>
+    <article class="card"><h2>Grupos</h2><p>Grupos y sus miembros.</p><a class="button" href="{% url 'admin-groups' %}">Ver grupos</a></article>
+    <article class="card"><h2>Partidos</h2><p>Resultados, participantes y goles.</p><a class="button" href="{% url 'admin-matches' %}">Ver partidos</a></article>
+  </div>
+{% endblock %}

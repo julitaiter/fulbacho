@@ -6,7 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.exceptions import AuthenticationError
+from app.core.exceptions import AuthenticationError, PermissionError
 from app.core.security import decode_access_token
 from app.modules.auth.models import User
 
@@ -26,4 +26,10 @@ def get_current_user(
     user = db.get(User, user_id)
     if not user or not user.is_active:
         raise AuthenticationError("Usuario no disponible")
+    return user
+
+
+def require_superuser(user: Annotated[User, Depends(get_current_user)]) -> User:
+    if not user.is_superuser:
+        raise PermissionError("Se requiere superusuario global")
     return user

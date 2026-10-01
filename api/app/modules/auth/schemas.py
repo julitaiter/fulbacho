@@ -29,6 +29,7 @@ class UserOut(BaseModel):
     email: EmailStr
     display_name: str
     is_active: bool
+    is_superuser: bool
 
 
 class TokenPair(BaseModel):

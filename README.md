@@ -125,18 +125,9 @@ Con el código de un grupo podés consultar sus jugadores, partidos, estadístic
 rankings sin crear una cuenta. Es un acceso de lectura: no permite agregar ni
 modificar datos.
 
-## Administración
-
-Existe una administración global para superusuarios, accesible con el mismo inicio
-de sesión habitual. Permite gestionar el estado y los permisos globales de las
-cuentas y consultar grupos, miembros y partidos.
-
-Este acceso es independiente del rol de administrador de un grupo, cuyos permisos
-se aplican únicamente dentro de ese grupo.
-
 ## Estado del proyecto
 
-Fulbacho v2 es un proyecto en evolución. Las funciones y la documentación se siguen
+Fulbacho es un proyecto en evolución. Las funciones y la documentación se siguen
 ajustando; no se considera una versión definitivamente terminada.
 
 ## Tecnología

@@ -1,20 +1,23 @@
 import os
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import dj_database_url
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-secret-key")
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", os.getenv("SECRET_KEY", "dev-only-secret-key"))
+DEBUG = os.getenv("DJANGO_DEBUG", os.getenv("DEBUG", "True")).lower() == "true"
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8001/api/v1").rstrip("/")
 API_TIMEOUT_SECONDS = float(os.getenv("API_TIMEOUT_SECONDS", "10"))
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost,.onrender.com").split(",")
+    for host in os.getenv("ALLOWED_HOSTS", "" if PRODUCTION else "127.0.0.1,localhost").split(",")
     if host.strip()
 ]
 CSRF_TRUSTED_ORIGINS = [
@@ -64,10 +67,9 @@ ASGI_APPLICATION = "config.asgi.application"
 web_database_url = os.getenv("WEB_DATABASE_URL")
 if web_database_url:
     DATABASES = {
-        "default": dj_database_url.config(
-            default=web_database_url,
+        "default": dj_database_url.parse(
+            web_database_url,
             conn_max_age=600,
-            ssl_require=not DEBUG,
         )
     }
 else:
@@ -77,6 +79,27 @@ else:
             "NAME": BASE_DIR / "web.sqlite3",
         }
     }
+
+if PRODUCTION:
+    if not os.getenv("DJANGO_SECRET_KEY") or os.getenv("DJANGO_DEBUG", "").lower() != "false" or DEBUG:
+        raise ImproperlyConfigured("Production requires DJANGO_SECRET_KEY and DJANGO_DEBUG=false.")
+    if SECRET_KEY == os.getenv("API_SECRET_KEY"):
+        raise ImproperlyConfigured("Application secrets must be distinct.")
+    if not ALLOWED_HOSTS or any("*" in host or host.startswith(".") for host in ALLOWED_HOSTS):
+        raise ImproperlyConfigured("Set ALLOWED_HOSTS to explicit production hostnames.")
+    if not CSRF_TRUSTED_ORIGINS or any(
+        not origin.startswith("https://") or "*" in origin for origin in CSRF_TRUSTED_ORIGINS
+    ):
+        raise ImproperlyConfigured("Set CSRF_TRUSTED_ORIGINS to explicit HTTPS origins.")
+    if not web_database_url or DATABASES["default"]["ENGINE"] != "django.db.backends.postgresql":
+        raise ImproperlyConfigured("Production requires a PostgreSQL WEB_DATABASE_URL.")
+    domain_url = os.getenv("DATABASE_URL", "")
+    if not domain_url or unquote(urlsplit(domain_url).path) == unquote(urlsplit(web_database_url).path):
+        raise ImproperlyConfigured("DATABASE_URL and WEB_DATABASE_URL must name separate databases.")
+    if API_BASE_URL != "http://127.0.0.1:8001/api/v1":
+        raise ImproperlyConfigured("Production API_BASE_URL must be http://127.0.0.1:8001/api/v1.")
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if PRODUCTION else None
 
 LANGUAGE_CODE = "es-ar"
 TIME_ZONE = "America/Argentina/Buenos_Aires"

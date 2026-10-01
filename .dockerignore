@@ -1,0 +1,15 @@
+.git
+.agents
+.codex
+.aws
+**/.env
+**/.env.*
+!**/.env.example
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/*.sqlite3
+**/staticfiles
+**/htmlcov
+**/.coverage

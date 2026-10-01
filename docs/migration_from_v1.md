@@ -24,10 +24,14 @@ La reconstrucción mantiene el enfoque server-rendered de Django pero reemplaza 
 
 ## Qué base usa Django
 
-Django mantiene una base pequeña para `django_session`. Esta base no almacena usuarios, grupos, jugadores, partidos ni estadísticas de Fulbacho.
+Django mantiene una base propia para `django_session` y `django_migrations`.
+Esta base no almacena usuarios, grupos, jugadores, partidos ni estadísticas de Fulbacho.
 
 ## Funciones de la v1 no trasladadas
 
-El admin de Django sobre los modelos del dominio deja de existir, porque Django ya no posee esos modelos. La administración funcional se realiza mediante permisos de grupo y endpoints FastAPI.
+El admin de Django sobre los modelos del dominio deja de existir, porque Django ya
+no posee esos modelos. Los permisos de grupo se conservan, y la administración
+global ahora tiene una UI propia en `/admin/` que consume endpoints administrativos
+FastAPI con autorización de superusuario. Ver [Administración global](admin.md).
 
 La importación CSV se rehízo sobre la API. Jugadores usa IDs opcionales para actualizar y partidos exporta/importa un `payload_json` v2 completo, evitando reconstrucciones ambiguas por nombre.

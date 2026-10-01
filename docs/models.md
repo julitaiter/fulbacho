@@ -4,7 +4,7 @@
 
 Este documento consolida las decisiones cerradas para el modelo conceptual de datos de Fulbacho v2.
 
-La API se implementará con FastAPI, SQLAlchemy 2, Alembic y PostgreSQL.
+La API está implementada con FastAPI, SQLAlchemy 2, Alembic y PostgreSQL.
 
 Principios del modelo:
 
@@ -73,6 +73,7 @@ email VARCHAR UNIQUE
 password_hash VARCHAR
 display_name VARCHAR
 is_active BOOLEAN
+is_superuser BOOLEAN
 created_at TIMESTAMPTZ
 updated_at TIMESTAMPTZ
 ```
@@ -81,6 +82,9 @@ updated_at TIMESTAMPTZ
 
 - El login se realiza por email.
 - No se requiere `username`.
+- `is_active` tiene default `true`; las cuentas inactivas no pueden autenticarse ni usar endpoints que requieren autenticación.
+- `is_superuser` tiene default `false` y concede acceso a la administración global.
+- El permiso global es independiente de los roles `admin/member` de los grupos; no existe `is_staff`.
 - Un usuario puede pertenecer a múltiples grupos.
 - Un usuario puede estar vinculado a distintos `Player` en distintos grupos.
 - Dentro de un mismo grupo, un usuario solo puede estar vinculado a un `Player`.
@@ -467,7 +471,7 @@ asignar player_id del nuevo Player
 las estadísticas históricas se incorporan automáticamente
 ```
 
-Endpoint futuro previsto:
+Endpoint implementado:
 
 ```http
 POST /api/v1/groups/{group_id}/players/promote-casual
@@ -662,7 +666,7 @@ MatchParticipant 1 ───── N Goal      (opcional desde goal)
 
 Este modelo conceptual queda cerrado como base para Fulbacho v2.
 
-El próximo paso es traducirlo a:
+La implementación actual incluye:
 
 1. modelos SQLAlchemy 2;
 2. constraints e índices PostgreSQL;
@@ -670,3 +674,8 @@ El próximo paso es traducirlo a:
 4. schemas Pydantic;
 5. servicios de dominio;
 6. endpoints FastAPI.
+
+La migración `0002_global_superuser.py` agrega el permiso global sin modificar los
+roles de grupo ni el estado activo de las cuentas existentes. Consultar
+[Administración](admin.md) para autorización y bootstrap, y
+[Arquitectura](architecture.md) para la separación entre Django y el dominio.
